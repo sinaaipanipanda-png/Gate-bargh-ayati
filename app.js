@@ -11,7 +11,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// خواندن اطلاعات از فایل ذخیره‌سازی
 function getOutages() {
     if (!fs.existsSync(DATA_FILE)) {
         fs.writeFileSync(DATA_FILE, JSON.stringify([]));
@@ -20,18 +19,17 @@ function getOutages() {
     return JSON.parse(data || '[]');
 }
 
-// ذخیره اطلاعات جدید
 function saveOutages(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// API دریافت کارت‌ها برای همه کاربران
+// ۱. دریافت همه قطعی‌ها
 app.get('/api/outages', (req, res) => {
     const outages = getOutages();
     res.json(outages);
 });
 
-// API ایجاد کارت جدید توسط مدیر (رمز 9412)
+// ۲. ثبت قطعی جدید
 app.post('/api/outages', (req, res) => {
     const { password, date, outageTime, restoreTime, reason } = req.body;
 
@@ -51,10 +49,32 @@ app.post('/api/outages', (req, res) => {
     outages.push(newCard);
     saveOutages(outages);
 
-    res.json({ success: true, message: 'اطلاعات با موفقیت ثبت شد.', card: newCard });
+    res.json({ success: true, message: 'اطلاعات با موفقیت ثبت شد.' });
 });
 
-// API حذف کارت
+// ۳. ویرایش قطعی (جدید)
+app.put('/api/outages/:id', (req, res) => {
+    const { password, date, outageTime, restoreTime, reason } = req.body;
+    const cardId = parseInt(req.params.id);
+
+    if (password !== '9412') {
+        return res.status(403).json({ success: false, message: 'رمز عبور اشتباه است.' });
+    }
+
+    let outages = getOutages();
+    const index = outages.findIndex(item => item.id === cardId);
+
+    if (index === -1) {
+        return res.status(404).json({ success: false, message: 'کارت مورد نظر یافت نشد.' });
+    }
+
+    outages[index] = { id: cardId, date, outageTime, restoreTime, reason };
+    saveOutages(outages);
+
+    res.json({ success: true, message: 'کارت با موفقیت ویرایش شد.' });
+});
+
+// ۴. حذف قطعی
 app.delete('/api/outages/:id', (req, res) => {
     const { password } = req.body;
     const cardId = parseInt(req.params.id);
@@ -70,21 +90,14 @@ app.delete('/api/outages/:id', (req, res) => {
     res.json({ success: true, message: 'کارت با موفقیت حذف شد.' });
 });
 
-// روشن کردن سرور
 app.listen(PORT, () => {
     console.log(`سرور روی پورت ${PORT} فعال شد.`);
 });
 
-// ==========================================
-// کد پینگ خودکار هر ۱۰ دقیقه برای بیدار نگه‌داشتن Render
-// ==========================================
+// پینگ ۱۰ دقیقه‌ای بیدار نگه داشتن Render
 const SITE_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-
 setInterval(async () => {
     try {
         await fetch(SITE_URL);
-        console.log('پینگ ۱۰ دقیقه‌ای انجام شد - سرور بیدار است.');
-    } catch (err) {
-        console.error('خطا در پینگ سرور:', err.message);
-    }
+    } catch (err) {}
 }, 10 * 60 * 1000);
