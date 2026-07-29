@@ -101,32 +101,33 @@
             position: fixed;
             bottom: 25px;
             right: 25px;
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.25);
             color: #fbbf24;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 90;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .admin-star-btn:hover {
-            transform: scale(1.1) rotate(15deg);
-            background: rgba(255, 255, 255, 0.2);
+        .admin-star-btn:active {
+            transform: scale(0.95);
         }
 
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(8px);
             justify-content: center;
             align-items: center;
@@ -158,12 +159,13 @@
 
         .form-group input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 12px 14px;
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.2);
             background: rgba(0, 0, 0, 0.3);
             color: #fff;
             outline: none;
+            font-size: 1rem;
         }
 
         .btn-submit {
@@ -176,6 +178,7 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            font-size: 1rem;
         }
 
         .btn-close {
@@ -213,9 +216,22 @@
     </div>
 
     <!-- دکمه ستاره مدیریت -->
-    <button class="admin-star-btn" onclick="openAdminPrompt()" title="ورود مدیر">★</button>
+    <button type="button" class="admin-star-btn" onclick="openPassModal()" title="ورود مدیر">★</button>
 
-    <!-- مودال ثبت قطعی برق جدید -->
+    <!-- ۱. مودال درخواست رمز عبور -->
+    <div class="modal" id="passModal">
+        <div class="glass modal-content">
+            <h2>ورود مدیر</h2>
+            <div class="form-group">
+                <label>رمز عبور را وارد کنید:</label>
+                <input type="password" id="adminPassInput" placeholder="****" autocomplete="off">
+            </div>
+            <button type="button" class="btn-submit" onclick="checkPassword()">ورود</button>
+            <button type="button" class="btn-close" onclick="closePassModal()">انصراف</button>
+        </div>
+    </div>
+
+    <!-- ۲. مودال ثبت قطعی برق جدید -->
     <div class="modal" id="adminModal">
         <div class="glass modal-content">
             <h2>ثبت قطعی برق جدید</h2>
@@ -237,7 +253,7 @@
                     <input type="text" id="reason" placeholder="مثال: مانور عملیاتی شبکه" required>
                 </div>
                 <button type="submit" class="btn-submit">افزودن کارت</button>
-                <button type="button" class="btn-close" onclick="closeModal()">انصراف</button>
+                <button type="button" class="btn-close" onclick="closeAdminModal()">انصراف</button>
             </form>
         </div>
     </div>
@@ -245,7 +261,7 @@
     <script>
         let currentAdminPassword = null;
 
-        // دریافت کارت‌ها از سرور
+        // دریافت لیست قطعی‌ها
         async function fetchOutages() {
             try {
                 const res = await fetch('/api/outages');
@@ -290,29 +306,40 @@
                         <span class="card-label">علت قطعی برق:</span>
                         <span class="card-value">${item.reason}</span>
                     </div>
-                    ${currentAdminPassword === '9412' ? `<button class="delete-btn" onclick="deleteCard(${item.id})">حذف این گزارش</button>` : ''}
+                    ${currentAdminPassword === '9412' ? `<button type="button" class="delete-btn" onclick="deleteCard(${item.id})">حذف این گزارش</button>` : ''}
                 `;
                 container.appendChild(card);
             });
         }
 
-        // دکمه ستاره و درخواست رمز عبور
-        function openAdminPrompt() {
-            const pass = prompt("لطفاً رمز عبور مدیر را وارد کنید:");
+        // باز کردن مودال رمز عبور
+        function openPassModal() {
+            document.getElementById('adminPassInput').value = '';
+            document.getElementById('passModal').style.display = 'flex';
+        }
+
+        function closePassModal() {
+            document.getElementById('passModal').style.display = 'none';
+        }
+
+        // بررسی رمز عبور (9412)
+        function checkPassword() {
+            const pass = document.getElementById('adminPassInput').value;
             if (pass === "9412") {
                 currentAdminPassword = pass;
+                closePassModal();
                 document.getElementById('adminModal').style.display = 'flex';
                 fetchOutages();
-            } else if (pass !== null) {
+            } else {
                 alert("رمز عبور اشتباه است!");
             }
         }
 
-        function closeModal() {
+        function closeAdminModal() {
             document.getElementById('adminModal').style.display = 'none';
         }
 
-        // ثبت کارت جدید در سرور
+        // ثبت کارت جدید
         async function saveNewCard(e) {
             e.preventDefault();
 
@@ -327,4 +354,47 @@
             try {
                 const res = await fetch('/api/outages', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json'
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    closeAdminModal();
+                    document.getElementById('outageForm').reset();
+                    fetchOutages();
+                } else {
+                    alert(result.message);
+                }
+            } catch (err) {
+                alert('خطا در اتصال به سرور!');
+            }
+        }
+
+        // حذف کارت
+        async function deleteCard(id) {
+            if (!confirm("آیا از حذف این گزارش اطمینان دارید؟")) return;
+
+            try {
+                const res = await fetch(`/api/outages/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: currentAdminPassword })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    fetchOutages();
+                } else {
+                    alert(result.message);
+                }
+            } catch (err) {
+                alert('خطا در حذف کارت!');
+            }
+        }
+
+        // دریافت اطلاعات هنگام باز شدن صفحه
+        fetchOutages();
+    </script>
+</body>
+    </html>
