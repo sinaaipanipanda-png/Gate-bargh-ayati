@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سامانه قطعی برق | تهران بزرگ</title>
+    <!-- فونت وزیرمتن -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a, #1e1b4b, #311042);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        header p {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Glassmorphism Styling */
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            padding: 24px;
+        }
+
+        .card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-row:last-child {
+            border-bottom: none;
+        }
+
+        .card-label {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .card-value {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #f8fafc;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        .admin-star-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fbbf24;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .admin-star-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            outline: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-close {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>سامانه اعلام قطعی برق</h1>
+        <p>شناسه قبض: ۹۴۱۲۴۴۶۸۰۴۱۲۹ | تهران بزرگ</p>
+    </header>
+
+    <div class="container" id="cards-container">
+        <!-- کارت‌ها بارگذاری می‌شوند -->
+    </div>
+
+    <!-- دکمه ستاره مدیریت -->
+    <button class="admin-star-btn" onclick="openAdminPrompt()" title="ورود مدیر">★</button>
+
+    <!-- مودال ثبت قطعی برق جدید -->
+    <div class="modal" id="adminModal">
+        <div class="glass modal-content">
+            <h2>ثبت قطعی برق جدید</h2>
+            <form id="outageForm" onsubmit="saveNewCard(event)">
+                <div class="form-group">
+                    <label>تاریخ قطعی</label>
+                    <input type="text" id="outageDate" placeholder="مثال: ۱۴۰۳/۰۵/۱۲" required>
+                </div>
+                <div class="form-group">
+                    <label>ساعت قطعی</label>
+                    <input type="text" id="outageTime" placeholder="مثال: ۱۴:۰۰" required>
+                </div>
+                <div class="form-group">
+                    <label>ساعت وصل شدن</label>
+                    <input type="text" id="restoreTime" placeholder="مثال: ۱۶:۳۰" required>
+                </div>
+                <div class="form-group">
+                    <label>علت قطعی برق</label>
+                    <input type="text" id="reason" placeholder="مثال: مانور عملیاتی شبکه" required>
+                </div>
+                <button type="submit" class="btn-submit">افزودن کارت</button>
+                <button type="button" class="btn-close" onclick="closeModal()">انصراف</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentAdminPassword = null;
+
+        // دریافت کارت‌ها از سرور
+        async function fetchOutages() {
+            try {
+                const res = await fetch('/api/outages');
+                const data = await res.json();
+                renderCards(data);
+            } catch (err) {
+                console.error('خطا در دریافت اطلاعات:', err);
+            }
+        }
+
+        // رندر کارت‌ها
+        function renderCards(data) {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `
+                    <div class="glass empty-state">
+                        در حال حاضر هیچ برنامه قطعی برقی ثبت نشده است.
+                    </div>
+                `;
+                return;
+            }
+
+            data.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'glass';
+                card.innerHTML = `
+                    <div class="card-row">
+                        <span class="card-label">تاریخ قطعی:</span>
+                        <span class="card-value">${item.date}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-label">ساعت قطعی:</span>
+                        <span class="card-value">${item.outageTime}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-label">ساعت وصل شدن:</span>
+                        <span class="card-value">${item.restoreTime}</span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-label">علت قطعی برق:</span>
+                        <span class="card-value">${item.reason}</span>
+                    </div>
+                    ${currentAdminPassword === '9412' ? `<button class="delete-btn" onclick="deleteCard(${item.id})">حذف این گزارش</button>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // دکمه ستاره و درخواست رمز عبور
+        function openAdminPrompt() {
+            const pass = prompt("لطفاً رمز عبور مدیر را وارد کنید:");
+            if (pass === "9412") {
+                currentAdminPassword = pass;
+                document.getElementById('adminModal').style.display = 'flex';
+                fetchOutages();
+            } else if (pass !== null) {
+                alert("رمز عبور اشتباه است!");
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
+
+        // ثبت کارت جدید در سرور
+        async function saveNewCard(e) {
+            e.preventDefault();
+
+            const payload = {
+                password: currentAdminPassword,
+                date: document.getElementById('outageDate').value,
+                outageTime: document.getElementById('outageTime').value,
+                restoreTime: document.getElementById('restoreTime').value,
+                reason: document.getElementById('reason').value
+            };
+
+            try {
+                const res = await fetch('/api/outages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json'
